@@ -1,14 +1,19 @@
 package br.com.webflux.pokedex.controller;
 
 import br.com.webflux.pokedex.model.Pokemon;
+import br.com.webflux.pokedex.model.PokemonEvent;
 import br.com.webflux.pokedex.repository.PokemonRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
+
 @RestController
+@RequestMapping("/pokemons")
 public class PokemonController {
 
     private PokemonRepository pokemonRepository;
@@ -29,7 +34,7 @@ public class PokemonController {
     }
 
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<Pokemon>> getPokemonById(String id) {
+    public Mono<ResponseEntity<Pokemon>> getPokemonById(@PathVariable String id) {
         return pokemonRepository.findById(id).
                 map(pokemon -> ResponseEntity.ok(pokemon)).defaultIfEmpty(ResponseEntity.notFound().build());
     }
@@ -57,5 +62,11 @@ public class PokemonController {
     @DeleteMapping
     public Mono<Void> deleteAllPokemons() {
         return pokemonRepository.deleteAll();
+    }
+
+    @GetMapping(value = "/events" , produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<PokemonEvent> getPokemonEvents() {
+        return Flux.interval(Duration.ofSeconds(5))
+                .map(value -> new PokemonEvent(value , "Pokemonzitooos"));
     }
 }
